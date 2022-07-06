@@ -7,14 +7,14 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface AccountDao {
-    boolean create(Long accountId, Long id, BigDecimal balance);
+    void create(long id);
 
     List<Account> findAll();
 
-    Long findAccountById(Long id);
+    Account findAccountById(Long id);
 
     BigDecimal getBalance(Long accountId);
 
-    BigDecimal updateBalance(Long accountId, BigDecimal amount);
+    void updateBalance(Long accountId, BigDecimal amount);
 
 }
