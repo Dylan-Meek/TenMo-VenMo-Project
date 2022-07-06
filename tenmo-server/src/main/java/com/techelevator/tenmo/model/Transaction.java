@@ -1,23 +1,21 @@
 package com.techelevator.tenmo.model;
 
+import java.math.BigDecimal;
+
 public class Transaction {
 
-    public enum typeEnum {SEND, REQUEST, UNASSIGNED}
-
-    ;
-
-    public enum statusEnum {APPROVED, REJECTED, PENDING}
-
-    ;
+    public enum typeEnum {SEND, REQUEST};
+    public enum statusEnum {APPROVED, REJECTED, PENDING};
     private int transaction_id;
     private long send_account_id;
     private long receive_account_id;
     private statusEnum transfer_status = statusEnum.PENDING;
-    private typeEnum transfer_type = typeEnum.UNASSIGNED;
+    private typeEnum transfer_type;
+    private BigDecimal transferAmount;
 
     public Transaction(){};
 
-    public Transaction(int transaction_id, long send_account_id, long receive_account_id, statusEnum transfer_status, typeEnum transfer_type) {
+    public Transaction(int transaction_id, long send_account_id, long receive_account_id, BigDecimal transferAmount, statusEnum transfer_status, typeEnum transfer_type) {
         this.transaction_id = transaction_id;
         this.send_account_id = send_account_id;
         this.receive_account_id = receive_account_id;
