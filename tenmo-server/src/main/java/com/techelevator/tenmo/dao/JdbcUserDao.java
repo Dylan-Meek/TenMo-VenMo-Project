@@ -63,6 +63,7 @@ public class JdbcUserDao implements UserDao {
         Integer newUserId;
         try {
             newUserId = jdbcTemplate.queryForObject(sql, Integer.class, username, password_hash);
+
         } catch (DataAccessException e) {
             return false;
         }

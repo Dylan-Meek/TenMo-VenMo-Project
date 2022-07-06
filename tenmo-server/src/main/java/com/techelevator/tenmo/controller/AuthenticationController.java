@@ -56,7 +56,9 @@ public class AuthenticationController {
     public void register(@Valid @RequestBody RegisterUserDTO newUser) {
         if (!userDao.create(newUser.getUsername(), newUser.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User registration failed.");
-        }
+        } //else {
+          //  userDao.create(newUser.getUsername(), newUser.getPassword());
+        //}
     }
 
     /**
