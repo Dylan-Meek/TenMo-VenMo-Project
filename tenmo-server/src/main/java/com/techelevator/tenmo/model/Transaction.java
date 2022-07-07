@@ -11,16 +11,17 @@ public class Transaction {
     private long receive_account_id;
     private statusEnum transfer_status = statusEnum.PENDING;
     private typeEnum transfer_type;
-    private BigDecimal transferAmount;
+    private BigDecimal transfer_amount;
 
     public Transaction(){};
 
-    public Transaction(int transaction_id, long send_account_id, long receive_account_id, BigDecimal transferAmount, statusEnum transfer_status, typeEnum transfer_type) {
+    public Transaction(int transaction_id, long send_account_id, long receive_account_id, BigDecimal transfer_amount, statusEnum transfer_status, typeEnum transfer_type) {
         this.transaction_id = transaction_id;
         this.send_account_id = send_account_id;
         this.receive_account_id = receive_account_id;
         this.transfer_status = transfer_status;
         this.transfer_type = transfer_type;
+        this.transfer_amount = transfer_amount;
     }
 
     public int getTransaction_id() {
@@ -61,5 +62,13 @@ public class Transaction {
 
     public void setTransfer_type(typeEnum transfer_type) {
         this.transfer_type = transfer_type;
+    }
+
+    public BigDecimal getTransfer_amount() {
+        return transfer_amount;
+    }
+
+    public void setTransfer_amount(BigDecimal transfer_amount) {
+        this.transfer_amount = transfer_amount;
     }
 }

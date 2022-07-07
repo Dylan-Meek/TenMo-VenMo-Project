@@ -33,13 +33,12 @@ public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private UserDao userDao;
     private AccountDao accountDao;
-/*    private JdbcUserDao jdbcuserdao;
-    private JdbcAccountDao jdbcaccountDao;*/
 
-    public AuthenticationController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder, UserDao userDao) {
+    public AuthenticationController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder, UserDao userDao, AccountDao accountDao) {
         this.tokenProvider = tokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.userDao = userDao;
+        this.accountDao = accountDao;
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
@@ -62,12 +61,9 @@ public class AuthenticationController {
     public void register(@Valid @RequestBody RegisterUserDTO newUser) {
         if (!userDao.create(newUser.getUsername(), newUser.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User registration failed.");
-        } else {
-            userDao.create(newUser.getUsername(), newUser.getPassword());
-            accountDao.create(userDao.findIdByUsername(newUser.getUsername()));
-           // jdbcaccountDao.create(jdbcuserdao.findIdByUsername(newUser.getUsername()));
         }
-    }
+      // accountDao.create(userDao.findIdByUsername(newUser.getUsername()));
+        }
 
     /**
      * Object to return as body in JWT Authentication.
