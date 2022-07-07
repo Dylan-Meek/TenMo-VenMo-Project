@@ -20,7 +20,7 @@ public class JdbcTransactionDao implements TransactionDao{
                        Transaction.typeEnum transfer_type, Transaction.statusEnum transfer_status) {
         String sql = "INSERT INTO transaction(send_account_id, receive_account_id, transfer_type, status, transfer_amount)\n" +
                 "VALUES (?, ?, ?, ?, ?);";
-        jdbcTemplate.update(sql, send_account_id, receive_account_id, transfer_type, transfer_status, transferAmount);
+        jdbcTemplate.update(sql, send_account_id, receive_account_id, transfer_type.toString(), transfer_status.toString(), transferAmount);
     }
 
     @Override

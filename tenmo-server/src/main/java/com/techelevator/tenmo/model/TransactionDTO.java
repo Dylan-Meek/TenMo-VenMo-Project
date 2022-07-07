@@ -1,21 +1,26 @@
 package com.techelevator.tenmo.model;
 
-import java.math.BigDecimal;
+import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+@Component
 public class TransactionDTO {
-    private int toUserId;
+    private Long toUserId;
     private BigDecimal amount;
 
-    public TransactionDTO(int toUserId, BigDecimal amount) {
+
+    public TransactionDTO(Long toUserId, BigDecimal amount) {
         this.toUserId = toUserId;
         this.amount = amount;
     }
 
-    public int getToUserId() {
+   public TransactionDTO(){};
+
+    public Long getToUserId() {
         return toUserId;
     }
 
-    public void setToUserId(int toUserId) {
+    public void setToUserId(Long toUserId) {
         this.toUserId = toUserId;
     }
 

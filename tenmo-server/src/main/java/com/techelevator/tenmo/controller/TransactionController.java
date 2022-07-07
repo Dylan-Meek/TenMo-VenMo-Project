@@ -15,15 +15,17 @@ import java.security.Principal;
 
 @PreAuthorize("isAuthenticated()")
 @RestController
-@RequestMapping ("/transactions")
+@RequestMapping("/transactions")
 public class TransactionController {
     private TransactionDao transactionDao;
     private AccountDao accountDao;
     private UserDao userDao;
-    private Principal principal;
+    private TransactionDTO transactionDTO;
 
-    public TransactionController(TransactionDao transactionDao) {
+    public TransactionController(TransactionDao transactionDao, UserDao userDao, TransactionDTO transactionDTO) {
         this.transactionDao = transactionDao;
+        this.userDao = userDao;
+        this.transactionDTO = transactionDTO;
     }
 
 
@@ -31,9 +33,14 @@ public class TransactionController {
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "")
-    public void SendTransfer(@ Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
-       // transactionDao.create(userDao.findIdByUsername(principal.getName()), newTransfer.getToUserId(), Transaction.typeEnum.SEND);
-       // accountDao.updateBalance(newTransfer.getToUserId(), newTransfer.getAmount());
+    public void SendTransfer(@Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
+        transactionDao.create(accountDao.findAccountById((userDao.findIdByUsername(principal.getName())), newTransfer.getToUserId(),
+                newTransfer.getAmount(), Transaction.typeEnum.SEND, Transaction.statusEnum.APPROVED);
+        accountDao.updateBalance(newTransfer.getToUserId(), (accountDao.getBalance(newTransfer.getToUserId())).add(newTransfer.getAmount()));
+        accountDao.updateBalance((long) userDao.findIdByUsername(principal.getName()),
+                (accountDao.getBalance((long) userDao.findIdByUsername(principal.getName())).subtract(newTransfer.getAmount())));
     }
+
+// MAKE METHOD TO FIND ACCOUNT ID BY USERNAME
 
 }
