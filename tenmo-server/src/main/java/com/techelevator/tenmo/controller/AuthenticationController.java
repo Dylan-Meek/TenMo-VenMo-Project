@@ -32,8 +32,9 @@ public class AuthenticationController {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private UserDao userDao;
-    private JdbcUserDao jdbcuserdao;
-    private JdbcAccountDao jdbcaccountDao;
+    private AccountDao accountDao;
+/*    private JdbcUserDao jdbcuserdao;
+    private JdbcAccountDao jdbcaccountDao;*/
 
     public AuthenticationController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder, UserDao userDao) {
         this.tokenProvider = tokenProvider;
@@ -63,7 +64,8 @@ public class AuthenticationController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User registration failed.");
         } else {
             userDao.create(newUser.getUsername(), newUser.getPassword());
-            jdbcaccountDao.create(jdbcuserdao.findIdByUsername(newUser.getUsername()));
+            accountDao.create(userDao.findIdByUsername(newUser.getUsername()));
+           // jdbcaccountDao.create(jdbcuserdao.findIdByUsername(newUser.getUsername()));
         }
     }
 
