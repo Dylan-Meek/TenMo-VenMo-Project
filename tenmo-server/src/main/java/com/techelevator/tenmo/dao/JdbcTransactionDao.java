@@ -9,14 +9,18 @@ import java.math.BigDecimal;
 @Component
 public class JdbcTransactionDao implements TransactionDao{
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public JdbcTransactionDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public void create(long send_account_id, long receive_account_id, BigDecimal transferAmount,
                        Transaction.typeEnum transfer_type, Transaction.statusEnum transfer_status) {
         String sql = "INSERT INTO transaction(send_account_id, receive_account_id, transfer_type, status, transfer_amount)\n" +
                 "VALUES (?, ?, ?, ?, ?);";
-        jdbcTemplate.queryForObject(sql, Transaction.class, send_account_id, receive_account_id, transfer_type, transfer_status, transferAmount);
+        jdbcTemplate.update(sql, send_account_id, receive_account_id, transfer_type, transfer_status, transferAmount);
     }
 
     @Override

@@ -19,12 +19,16 @@ public class JdbcAccountDao implements AccountDao {
 
     private JdbcTemplate jdbcTemplate;
 
-    BigDecimal startingBalance = BigDecimal.valueOf(1000.00);
+    private final static BigDecimal STARTING_BALANCE = BigDecimal.valueOf(1000.00);
+
+    public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public void create(long id) {
         String sql = "INSERT INTO account (user_id, balance) VALUES (?, ?)";
-            jdbcTemplate.queryForObject(sql, Account.class, id, startingBalance);
+            jdbcTemplate.update(sql, id, STARTING_BALANCE);
     }
 
 

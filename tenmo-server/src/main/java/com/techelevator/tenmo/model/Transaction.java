@@ -13,7 +13,11 @@ public class Transaction {
     private typeEnum transfer_type;
     private BigDecimal transfer_amount;
 
-    public Transaction(){};
+    public Transaction(long send_account_id, long receive_account_id, BigDecimal transfer_amount){
+        this.send_account_id = send_account_id;
+        this.receive_account_id = receive_account_id;
+        this.transfer_amount = transfer_amount;
+    }
 
     public Transaction(int transaction_id, long send_account_id, long receive_account_id, BigDecimal transfer_amount, statusEnum transfer_status, typeEnum transfer_type) {
         this.transaction_id = transaction_id;
