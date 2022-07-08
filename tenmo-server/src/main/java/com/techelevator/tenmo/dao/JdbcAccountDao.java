@@ -28,7 +28,7 @@ public class JdbcAccountDao implements AccountDao {
     @Override
     public void create(long id) {
         String sql = "INSERT INTO account (user_id, balance) VALUES (?, ?)";
-            jdbcTemplate.update(sql, id, STARTING_BALANCE);
+        jdbcTemplate.update(sql, id, STARTING_BALANCE);
     }
 
 
@@ -52,9 +52,11 @@ public class JdbcAccountDao implements AccountDao {
     @Override
     public Account findAccountById(Long id) {
         String sql = "SELECT account_id, user_id, balance FROM account WHERE user_id = ?";
-        Account account;
+        Account account = null;
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, id);
-        account = mapRowToAccount(results);
+        if (results.next()) {
+            account = mapRowToAccount(results);
+        }
         return account;
     }
 
@@ -73,6 +75,26 @@ public class JdbcAccountDao implements AccountDao {
     @Override
     public void updateBalance(Long accountId, BigDecimal amount) {
         String sql = "UPDATE account SET balance = balance + ? WHERE account_id = ?";
+        try {
+            jdbcTemplate.update(sql, amount, accountId);
+        } catch (DataAccessException e) {
+            System.out.println("Account not found.");
+        }
+    }
+
+    @Override
+    public void addToBalance(Long accountId, BigDecimal amount) {
+        String sql = "UPDATE account SET balance = balance + ? WHERE account_id = ?";
+        try {
+            jdbcTemplate.update(sql, amount, accountId);
+        } catch (DataAccessException e) {
+            System.out.println("Account not found.");
+        }
+    }
+
+    @Override
+    public void subtractFromBalance(Long accountId, BigDecimal amount) {
+        String sql = "UPDATE account SET balance = balance - ? WHERE account_id = ?";
         try {
             jdbcTemplate.update(sql, amount, accountId);
         } catch (DataAccessException e) {

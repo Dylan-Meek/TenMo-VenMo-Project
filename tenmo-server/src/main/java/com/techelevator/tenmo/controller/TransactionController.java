@@ -3,6 +3,7 @@ package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransactionDao;
 import com.techelevator.tenmo.dao.UserDao;
+import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transaction;
 import com.techelevator.tenmo.model.TransactionDTO;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,11 @@ public class TransactionController {
     private UserDao userDao;
     private TransactionDTO transactionDTO;
 
-    public TransactionController(TransactionDao transactionDao, UserDao userDao, TransactionDTO transactionDTO) {
+    public TransactionController(TransactionDao transactionDao, UserDao userDao, TransactionDTO transactionDTO, AccountDao accountDao) {
         this.transactionDao = transactionDao;
         this.userDao = userDao;
         this.transactionDTO = transactionDTO;
+        this.accountDao = accountDao;
     }
 
 
@@ -34,11 +36,19 @@ public class TransactionController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "")
     public void SendTransfer(@Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
-        transactionDao.create(accountDao.findAccountById((userDao.findIdByUsername(principal.getName())), newTransfer.getToUserId(),
-                newTransfer.getAmount(), Transaction.typeEnum.SEND, Transaction.statusEnum.APPROVED);
-        accountDao.updateBalance(newTransfer.getToUserId(), (accountDao.getBalance(newTransfer.getToUserId())).add(newTransfer.getAmount()));
-        accountDao.updateBalance((long) userDao.findIdByUsername(principal.getName()),
-                (accountDao.getBalance((long) userDao.findIdByUsername(principal.getName())).subtract(newTransfer.getAmount())));
+        BigDecimal transferAmount = newTransfer.getAmount();
+
+        long senderUserID = (long) userDao.findIdByUsername(principal.getName());
+        long senderAccountId = accountDao.findAccountById(senderUserID).getAccountId();
+
+        long receiveUserId = userDao.findIdByUsername(newTransfer.getReceiverUserName());
+        long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
+
+        transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
+                Transaction.typeEnum.SEND, Transaction.statusEnum.APPROVED);
+
+        accountDao.subtractFromBalance(senderAccountId, transferAmount);
+        accountDao.addToBalance(receiveAccountId, transferAmount);
     }
 
 // MAKE METHOD TO FIND ACCOUNT ID BY USERNAME
