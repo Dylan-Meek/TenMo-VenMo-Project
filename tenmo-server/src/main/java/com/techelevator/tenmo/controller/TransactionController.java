@@ -3,9 +3,9 @@ package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransactionDao;
 import com.techelevator.tenmo.dao.UserDao;
-import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.RequestDTO;
 import com.techelevator.tenmo.model.Transaction;
-import com.techelevator.tenmo.model.TransactionDTO;
+import com.techelevator.tenmo.model.SendDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,9 +24,9 @@ public class TransactionController {
     private TransactionDao transactionDao;
     private AccountDao accountDao;
     private UserDao userDao;
-    private TransactionDTO transactionDTO;
+    private SendDTO transactionDTO;
 
-    public TransactionController(TransactionDao transactionDao, UserDao userDao, TransactionDTO transactionDTO, AccountDao accountDao) {
+    public TransactionController(TransactionDao transactionDao, UserDao userDao, SendDTO transactionDTO, AccountDao accountDao) {
         this.transactionDao = transactionDao;
         this.userDao = userDao;
         this.transactionDTO = transactionDTO;
@@ -36,8 +36,8 @@ public class TransactionController {
 
     //SEND MONEY
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(path = "")
-    public boolean SendTransfer(@Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
+    @PostMapping(path = "/send")
+    public boolean SendTransfer(@Valid @RequestBody SendDTO newTransfer, Principal principal) {
         BigDecimal transferAmount = newTransfer.getAmount();
 
         long senderUserID = (long) userDao.findIdByUsername(principal.getName());
@@ -61,6 +61,45 @@ public class TransactionController {
     }
     // TODO: ADD INSUFFICIENT FUNDS EXCEPTION
 
+    //SEND MONEY
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(path = "/request")
+    public boolean requestTransfer(@Valid @RequestBody SendDTO newTransfer, Principal principal) {
+        BigDecimal transferAmount = newTransfer.getAmount();
+
+        long senderUserID = userDao.findIdByUsername(newTransfer.getReceiverUserName());
+        long senderAccountId = accountDao.findAccountById(senderUserID).getAccountId();
+
+        long receiveUserId = (long) userDao.findIdByUsername(principal.getName());
+        long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
+
+        if (senderAccountId != receiveAccountId && transferAmount.compareTo(BigDecimal.ZERO) >= 0) {
+            transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
+                    Transaction.typeEnum.REQUEST, Transaction.statusEnum.PENDING);
+            return true;
+        } else {
+            System.out.println("");
+            return false;
+        }
+    }
+
+    @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
+    @PostMapping(path = "/request/{transaction_id}")
+    public boolean requestDecision(@Valid @RequestBody Transaction transaction, Principal principal) {
+        BigDecimal transferAmount = transaction.getTransfer_amount();
+
+        long senderUserID = transaction.getSend_account_id();
+        long senderAccountId = accountDao.findAccountById(senderUserID).getAccountId();
+
+        long receiveUserId = (long) userDao.findIdByUsername(principal.getName());
+        long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
+
+
+        if (accountDao.getBalance(senderAccountId).compareTo(transferAmount) >= 0) {
+
+        }
+        return true;
+    }
     // VIEW TRANSACTION BY TRANSACTION ID.
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping(path = "/{transaction_id}")

@@ -4,17 +4,17 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 @Component
-public class TransactionDTO {
+public class SendDTO {
     private String receiverUserName;
     private BigDecimal amount;
 
 
-    public TransactionDTO(String receiverUserName, BigDecimal amount) {
+    public SendDTO(String receiverUserName, BigDecimal amount) {
         this.receiverUserName = receiverUserName;
         this.amount = amount;
     }
 
-   public TransactionDTO(){};
+   public SendDTO(){};
 
     public String getReceiverUserName() {
         return receiverUserName;

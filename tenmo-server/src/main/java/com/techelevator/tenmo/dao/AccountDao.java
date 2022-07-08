@@ -9,7 +9,7 @@ import java.util.List;
 public interface AccountDao {
     void create(long id);
 
-    List<Account> findAll();
+    List<String> findAll();
 
     Account findAccountById(Long id);
 

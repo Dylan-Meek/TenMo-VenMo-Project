@@ -33,14 +33,13 @@ public class JdbcAccountDao implements AccountDao {
 
 
     @Override
-    public List<Account> findAll() {
-        List<Account> accounts = new ArrayList<>();
-        String sql = "SELECT account_id, user_id FROM account";
+    public List<String> findAll() {
+        List<String> accounts = new ArrayList<>();
+        String sql = "SELECT username FROM account JOIN tenmo_user ON tenmo_user.user_id = account.user_id ORDER BY username;";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
             while (results.next()) {
-                Account account = mapRowToAccount(results);
-                accounts.add(account);
+                accounts.add(String.valueOf(results));
             }
         } catch (DataAccessException e) {
             System.out.println("There are no accounts to display.");

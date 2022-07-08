@@ -12,7 +12,13 @@ public class User {
    private boolean activated;
    private Set<Authority> authorities = new HashSet<>();
 
-   public User() { }
+   public User() {
+
+   }
+
+   public User(String username) {
+      this.username = username;
+   }
 
    public User(Long id, String username, String password, String authorities) {
       this.id = id;
