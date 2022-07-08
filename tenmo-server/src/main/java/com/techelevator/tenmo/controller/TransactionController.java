@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @PreAuthorize("isAuthenticated()")
 @RestController
@@ -32,10 +35,9 @@ public class TransactionController {
 
 
     //SEND MONEY
-    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "")
-    public void SendTransfer(@Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
+    public boolean SendTransfer(@Valid @RequestBody TransactionDTO newTransfer, Principal principal) {
         BigDecimal transferAmount = newTransfer.getAmount();
 
         long senderUserID = (long) userDao.findIdByUsername(principal.getName());
@@ -44,13 +46,37 @@ public class TransactionController {
         long receiveUserId = userDao.findIdByUsername(newTransfer.getReceiverUserName());
         long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
 
-        transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
-                Transaction.typeEnum.SEND, Transaction.statusEnum.APPROVED);
+        if (accountDao.getBalance(senderAccountId).compareTo(transferAmount) >= 0
+                && senderAccountId != receiveAccountId
+                && transferAmount.compareTo(BigDecimal.ZERO) >= 0) {
+            transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
+                    Transaction.typeEnum.SEND, Transaction.statusEnum.APPROVED);
 
-        accountDao.subtractFromBalance(senderAccountId, transferAmount);
-        accountDao.addToBalance(receiveAccountId, transferAmount);
+            accountDao.subtractFromBalance(senderAccountId, transferAmount);
+            accountDao.addToBalance(receiveAccountId, transferAmount);
+            return true;
+        } else
+            System.out.println("Cannot transfer funds.");
+        return false;
+    }
+    // TODO: ADD INSUFFICIENT FUNDS EXCEPTION
+
+    // VIEW TRANSACTION BY TRANSACTION ID.
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping(path = "/{transaction_id}")
+    public Transaction ViewTransactionsByTransactionId(@PathVariable int transaction_id) {
+        return transactionDao.viewTransactionByTransactionID(transaction_id);
     }
 
-// MAKE METHOD TO FIND ACCOUNT ID BY USERNAME
-
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping(path = "/all/{username}")
+    public List<Transaction> viewAllTransactionsForAccountID(@PathVariable String username, Principal principal) {
+        List<Transaction> transactionList = new ArrayList<>();
+        if (Objects.equals(username, principal.getName())) {
+            long principalUserId = userDao.findIdByUsername(principal.getName());
+            int principalAccountId = Math.toIntExact(accountDao.findAccountById(principalUserId).getAccountId());
+            transactionList = transactionDao.viewAllTransactionsForAccountID(principalAccountId);
+        }
+        return transactionList;
+    }
 }

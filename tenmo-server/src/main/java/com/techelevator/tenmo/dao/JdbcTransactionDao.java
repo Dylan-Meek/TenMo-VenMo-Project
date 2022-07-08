@@ -1,11 +1,15 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transaction;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class JdbcTransactionDao implements TransactionDao{
 
@@ -31,4 +35,41 @@ public class JdbcTransactionDao implements TransactionDao{
         String sql = "UPDATE transaction SET status = ? WHERE transaction_id = ?;";
         jdbcTemplate.update(sql, Transaction.class,transfer_status, transaction_id);
     }
-}
+    @Override
+    public Transaction viewTransactionByTransactionID(int transaction_id) {
+        Transaction lineTransaction = new Transaction();
+        String sql = "SELECT transaction_id, send_account_id, receive_account_id," +
+                " transfer_type, transfer_amount, status FROM transaction" +
+                " WHERE transaction_id = ?";
+        SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, transaction_id);
+        if (rs.next()) {
+            lineTransaction = mapRowToTransaction(rs);
+        }
+        return lineTransaction;
+    }
+
+    @Override
+    public List<Transaction> viewAllTransactionsForAccountID(int account_id) {
+        List<Transaction> transactionList = new ArrayList<>();
+        String sql = "SELECT transaction_id, send_account_id, receive_account_id,transfer_type, transfer_amount, status FROM transaction WHERE receive_account_id = ? OR send_account_id = ?;";
+        SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, account_id, account_id);
+        while(rs.next()){
+            transactionList.add(mapRowToTransaction(rs));
+        }
+        return transactionList;
+    }
+
+
+    public Transaction mapRowToTransaction(SqlRowSet rs){
+        Transaction transaction = new Transaction();
+        transaction.setTransaction_id(rs.getInt("transaction_id"));
+        transaction.setSend_account_id(rs.getLong("send_account_id"));
+        transaction.setReceive_account_id(rs.getLong("receive_account_id"));
+        transaction.setTransfer_type(Transaction.typeEnum.valueOf(rs.getString("transfer_type")));
+        transaction.setTransfer_amount(rs.getBigDecimal("transfer_amount"));
+        transaction.setTransfer_status(Transaction.statusEnum.valueOf(rs.getString("status")));
+        return transaction;
+        }
+//
+    }
+
