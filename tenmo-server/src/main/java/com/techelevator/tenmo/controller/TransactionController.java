@@ -61,7 +61,7 @@ public class TransactionController {
     }
     // TODO: ADD INSUFFICIENT FUNDS EXCEPTION
 
-    //SEND MONEY
+    //REQUEST TRANSFER
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/request")
     public boolean requestTransfer(@Valid @RequestBody SendDTO newTransfer, Principal principal) {
@@ -83,23 +83,42 @@ public class TransactionController {
         }
     }
 
+    // APPROVE REQUEST
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
-    @PostMapping(path = "/request/{transaction_id}")
-    public boolean requestDecision(@Valid @RequestBody Transaction transaction, Principal principal) {
+    @PutMapping(path = "/request/approve/{transaction_id}")
+    public boolean approveRequest(@Valid @RequestBody Transaction transaction, Principal principal) {
         BigDecimal transferAmount = transaction.getTransfer_amount();
 
-        long senderUserID = transaction.getSend_account_id();
-        long senderAccountId = accountDao.findAccountById(senderUserID).getAccountId();
+        long approverUserId = (long) userDao.findIdByUsername(principal.getName());
+        long approverAccountId = accountDao.findAccountById(approverUserId).getAccountId();
 
-        long receiveUserId = (long) userDao.findIdByUsername(principal.getName());
-        long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
-
-
-        if (accountDao.getBalance(senderAccountId).compareTo(transferAmount) >= 0) {
-
+        if (accountDao.getBalance(approverAccountId).compareTo(transferAmount) >= 0
+            && transaction.getSend_account_id() == approverAccountId ) {
+            {transactionDao.updateStatus(transaction.getTransaction_id(), Transaction.statusEnum.APPROVED);
+                accountDao.subtractFromBalance(transaction.getSend_account_id(), transferAmount);
+                accountDao.addToBalance(transaction.getReceive_account_id(), transferAmount);
         }
         return true;
     }
+        else {return false;}
+    }
+
+    // REJECT REQUEST
+    @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
+    @PutMapping(path = "/request/reject/{transaction_id}")
+    public boolean rejectRequest(@Valid @RequestBody Transaction transaction, Principal principal) {
+        BigDecimal transferAmount = transaction.getTransfer_amount();
+
+        long approverUserId = (long) userDao.findIdByUsername(principal.getName());
+        long approverAccountId = accountDao.findAccountById(approverUserId).getAccountId();
+
+        if (transaction.getSend_account_id() == approverAccountId && transaction.getTransfer_type() == Transaction.typeEnum.REQUEST){
+            transactionDao.updateStatus(transaction.getTransaction_id(), Transaction.statusEnum.REJECTED);
+            return true;
+        }
+        else {return false;}
+    }
+
     // VIEW TRANSACTION BY TRANSACTION ID.
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping(path = "/{transaction_id}")
