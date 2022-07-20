@@ -22,7 +22,6 @@ public class AccountController {
         this.accountDao = accountDao;
     }
 
-    @ResponseStatus(HttpStatus.FOUND)
     @GetMapping(path = "/{account_id}")
     public BigDecimal getBalance(@PathVariable long account_id, Principal principal) {
         long principalUserId = userDao.findIdByUsername(principal.getName());

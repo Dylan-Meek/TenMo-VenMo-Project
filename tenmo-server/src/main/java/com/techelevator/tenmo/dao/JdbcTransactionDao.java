@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +34,21 @@ public class JdbcTransactionDao implements TransactionDao{
         //SET column1 = value1, column2 = value2, ...
         //WHERE condition;
         String sql = "UPDATE transaction SET status = ? WHERE transaction_id = ?;";
-        jdbcTemplate.update(sql, Transaction.class,transfer_status, transaction_id);
+        jdbcTemplate.update(sql, transfer_status, transaction_id);
     }
+
+    @Override
+    public void approveTransaction(int transaction_id) {
+        String sql = "UPDATE transaction SET status = 'APPROVE' WHERE transaction_id = ?;";
+        jdbcTemplate.update(sql, transaction_id);
+    }
+
+    @Override
+    public void rejectTransaction(int transaction_id) {
+        String sql = "UPDATE transaction SET status = 'REJECT' WHERE transaction_id = ?;";
+        jdbcTemplate.update(sql, transaction_id);
+    }
+
     @Override
     public Transaction viewTransactionByTransactionID(int transaction_id) {
         Transaction lineTransaction = new Transaction();
@@ -51,8 +65,19 @@ public class JdbcTransactionDao implements TransactionDao{
     @Override
     public List<Transaction> viewAllTransactionsForAccountID(int account_id) {
         List<Transaction> transactionList = new ArrayList<>();
-        String sql = "SELECT transaction_id, send_account_id, receive_account_id,transfer_type, transfer_amount, status FROM transaction WHERE receive_account_id = ? OR send_account_id = ?;";
+        String sql = "SELECT transaction_id, send_account_id, receive_account_id, transfer_type, transfer_amount, status FROM transaction WHERE receive_account_id = ? OR send_account_id = ?;";
         SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, account_id, account_id);
+        while(rs.next()){
+            transactionList.add(mapRowToTransaction(rs));
+        }
+        return transactionList;
+    }
+
+    public List<Transaction> viewAllPendingTransactionsForAccountID(int account_id) {
+        Transaction.statusEnum pending = Transaction.statusEnum.PENDING;
+        List<Transaction> transactionList = new ArrayList<>();
+        String sql = "SELECT transaction_id, send_account_id, receive_account_id, transfer_type, transfer_amount, status FROM transaction WHERE status = ? AND (receive_account_id = ? OR send_account_id = ?);";
+        SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, "PENDING", account_id, account_id);
         while(rs.next()){
             transactionList.add(mapRowToTransaction(rs));
         }

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-@Component
+
 public class RequestDTO {
     private Transaction.statusEnum transfer_status;
     private long transaction_id;
@@ -12,6 +12,10 @@ public class RequestDTO {
     public RequestDTO(Transaction.statusEnum transfer_status, long transaction_id) {
         this.transfer_status = transfer_status;
         this.transaction_id = transaction_id;
+    }
+
+    public RequestDTO() {
+
     }
 
     public Transaction.statusEnum getTransfer_status() {

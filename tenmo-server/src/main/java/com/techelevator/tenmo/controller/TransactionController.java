@@ -45,7 +45,6 @@ public class TransactionController {
 
         long receiveUserId = userDao.findIdByUsername(newTransfer.getReceiverUserName());
         long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
-
         if (accountDao.getBalance(senderAccountId).compareTo(transferAmount) >= 0
                 && senderAccountId != receiveAccountId
                 && transferAmount.compareTo(BigDecimal.ZERO) >= 0) {
@@ -73,14 +72,17 @@ public class TransactionController {
         long receiveUserId = (long) userDao.findIdByUsername(principal.getName());
         long receiveAccountId = accountDao.findAccountById(receiveUserId).getAccountId();
 
-        if (senderAccountId != receiveAccountId && transferAmount.compareTo(BigDecimal.ZERO) >= 0) {
-            transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
-                    Transaction.typeEnum.REQUEST, Transaction.statusEnum.PENDING);
-            return true;
-        } else {
-            System.out.println("");
-            return false;
+        boolean complete = false;
+        try {
+            if (senderAccountId != receiveAccountId && transferAmount.compareTo(BigDecimal.ZERO) >= 0) {
+                transactionDao.create(senderAccountId, receiveAccountId, newTransfer.getAmount(),
+                        Transaction.typeEnum.REQUEST, Transaction.statusEnum.PENDING);
+                complete = true;
+            }
+        } catch (Exception RequestFailed) {
+            System.out.println("Cannot Send Request");
         }
+        return complete;
     }
 
     // APPROVE REQUEST
@@ -93,14 +95,14 @@ public class TransactionController {
         long approverAccountId = accountDao.findAccountById(approverUserId).getAccountId();
 
         if (accountDao.getBalance(approverAccountId).compareTo(transferAmount) >= 0
-            && transaction.getSend_account_id() == approverAccountId ) {
-            {transactionDao.updateStatus(transaction.getTransaction_id(), Transaction.statusEnum.APPROVED);
+                && transaction.getSend_account_id() == approverAccountId) {
+                transactionDao.approveTransaction(transaction.getTransaction_id());
                 accountDao.subtractFromBalance(transaction.getSend_account_id(), transferAmount);
                 accountDao.addToBalance(transaction.getReceive_account_id(), transferAmount);
+            return true;
+        } else {
+            return false;
         }
-        return true;
-    }
-        else {return false;}
     }
 
     // REJECT REQUEST
@@ -112,11 +114,12 @@ public class TransactionController {
         long approverUserId = (long) userDao.findIdByUsername(principal.getName());
         long approverAccountId = accountDao.findAccountById(approverUserId).getAccountId();
 
-        if (transaction.getSend_account_id() == approverAccountId && transaction.getTransfer_type() == Transaction.typeEnum.REQUEST){
-            transactionDao.updateStatus(transaction.getTransaction_id(), Transaction.statusEnum.REJECTED);
+        if (transaction.getSend_account_id() == approverAccountId && transaction.getTransfer_type() == Transaction.typeEnum.REQUEST) {
+            transactionDao.rejectTransaction(transaction.getTransaction_id());
             return true;
+        } else {
+            return false;
         }
-        else {return false;}
     }
 
     // VIEW TRANSACTION BY TRANSACTION ID.
@@ -134,6 +137,18 @@ public class TransactionController {
             long principalUserId = userDao.findIdByUsername(principal.getName());
             int principalAccountId = Math.toIntExact(accountDao.findAccountById(principalUserId).getAccountId());
             transactionList = transactionDao.viewAllTransactionsForAccountID(principalAccountId);
+        }
+        return transactionList;
+    }
+
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping(path = "/pending/{username}")
+    public List<Transaction> viewAllPendingTransactionsForAccountID(@PathVariable String username, Principal principal) {
+        List<Transaction> transactionList = new ArrayList<>();
+        if (Objects.equals(username, principal.getName())) {
+            long principalUserId = userDao.findIdByUsername(principal.getName());
+            int principalAccountId = Math.toIntExact(accountDao.findAccountById(principalUserId).getAccountId());
+            transactionList = transactionDao.viewAllPendingTransactionsForAccountID(principalAccountId);
         }
         return transactionList;
     }

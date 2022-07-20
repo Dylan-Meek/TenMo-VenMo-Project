@@ -11,8 +11,14 @@ public interface TransactionDao {
 
     void updateStatus(int transaction_id ,Transaction.statusEnum transfer_status);
 
+    void approveTransaction(int transaction_id);
+
+    void rejectTransaction(int transaction_id);
+
     Transaction viewTransactionByTransactionID(int transaction_id);
 
     List<Transaction> viewAllTransactionsForAccountID(int account_id);
+
+    List<Transaction> viewAllPendingTransactionsForAccountID(int account_id);
     }
 
